@@ -15,6 +15,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@types/json5": "^0.0.30",
     "eslint": "^8",
     "eslint-config-next": "15.0.4",
     "postcss": "^8",
