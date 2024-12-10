@@ -5,10 +5,13 @@ from fastapi import FastAPI, Depends
 from fastapi.responses import PlainTextResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 
 from routers import todos
 
 import config
+import os 
 
 app = FastAPI()
 app.include_router(todos.router)
@@ -46,3 +49,16 @@ def read_root(settings: config.Settings = Depends(get_settings)):
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
+
+SQLALCHEMY_DATABASE_URL = f"postgresql://{os.environ['DATABASE_USER']}:@{os.environ['DATABASE_HOST']}/{os.environ['DATABASE_NAME']}"
+
+@app.get("/healthchecker")
+def healthchecker():
+    try:
+        # Attempt to connect to the database
+        engine = create_engine(SQLALCHEMY_DATABASE_URL)
+        connection = engine.connect()
+        connection.close()
+        return {"status": "success", "message": "Database is connected"}
+    except OperationalError as e:
+        return {"status": "error", "message": "Database connection failed", "error": str(e)}
